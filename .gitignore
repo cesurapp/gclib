@@ -5,3 +5,6 @@ var/cache/*
 !var/cache/.gitignore
 var/log/*
 !var/log/.gitignore
+data/*
+!data/.gitignore
+!data/Country.json

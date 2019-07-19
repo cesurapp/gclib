@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Library\Helper;
 use FastRoute\DataGenerator\GroupCountBased;
 use FastRoute\Dispatcher;
 use FastRoute\Dispatcher\GroupCountBased as GroupCountBasedDispatcher;
@@ -26,7 +27,7 @@ class Kernel
     {
         if (!$this->router) {
             // Load Routes
-            $routes = include __DIR__ . '/Routes.php';
+            $routes = include Helper::getRootDir('config/routes.php');
 
             // Create Routes
             $collector = new RouteCollector(new Std(), new GroupCountBased());
@@ -63,7 +64,7 @@ class Kernel
     }
 
     /**
-     * Call Controller Method
+     * Call AbstractController Method
      *
      * @param Request $request
      * @param Response $response
@@ -73,12 +74,12 @@ class Kernel
      */
     private function callController(Request $request, Response $response, $class, $method, $parameters): void
     {
-        // Create Controller
+        // Create AbstractController
         if (!isset($this->container[$class])) {
             $this->container[$class] = new $class();
         }
 
-        // Set Resquest|Response
+        // Set Request|Response
         $this->container[$class]->set($request, $response);
 
         // Response

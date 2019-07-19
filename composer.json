@@ -14,8 +14,9 @@
     "php": "^7.3.0",
     "ext-json": "*",
     "ext-simplexml": "*",
+    "ext-curl": "*",
     "nikic/fast-route": "^1.3",
-    "symfony/cache": "^4.3"
+    "maxmind-db/reader": "^1.4"
   },
   "require-dev": {
     "eaglewu/swoole-ide-helper": "@dev"

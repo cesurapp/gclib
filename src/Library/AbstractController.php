@@ -6,9 +6,9 @@ use Swoole\Http\Request;
 use Swoole\Http\Response;
 
 /**
- * Base Controller
+ * Base AbstractController
  */
-class Controller
+class AbstractController
 {
     /**
      * @var Request

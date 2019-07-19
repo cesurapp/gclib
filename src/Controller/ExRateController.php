@@ -2,18 +2,11 @@
 
 namespace App\Controller;
 
-use App\Library\Cache;
-use App\Library\Controller;
+use App\Library\AbstractController;
 use App\Library\ExChangeParser;
-use Symfony\Contracts\Cache\ItemInterface;
 
-class ExRateController extends Controller
+class ExRateController extends AbstractController
 {
-    /**
-     * @var Cache
-     */
-    private $cache;
-
     /**
      * @var array
      */
@@ -24,17 +17,10 @@ class ExRateController extends Controller
      */
     private $storageInvalid = [];
 
-    public function __construct()
-    {
-        $this->cache = new Cache();
-    }
-
     /**
      * Get Latest Rates
      *
      * @param string $bank
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function latestRate(string $bank): void
     {
@@ -71,8 +57,6 @@ class ExRateController extends Controller
      *
      * @param string $bank
      * @param string $date
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function customRate(string $bank, string $date): void
     {
@@ -111,8 +95,6 @@ class ExRateController extends Controller
      * @param string $bank
      * @param string $dateStart
      * @param string $dateEnd
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function customRateRange(string $bank, string $dateStart, string $dateEnd): void
     {
@@ -156,11 +138,10 @@ class ExRateController extends Controller
      *
      * @param string $bank
      * @param int $cacheTimeout
-     * @return mixed
      *
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @return mixed
      */
-    private function loadRates(string $bank, int $cacheTimeout = 60)
+    private function loadRates(string $bank, int $cacheTimeout = 3600)
     {
         // Invalidate Variable Cache
         if (isset($this->storageInvalid[$bank]) && $this->storageInvalid[$bank] > time()) {
@@ -169,20 +150,11 @@ class ExRateController extends Controller
 
         if (!isset($this->storage[$bank])) {
             try {
-                $this->storage[$bank] = $this->cache->get($bank, static function (ItemInterface $item) use ($bank, $cacheTimeout) {
-                    $item->expiresAfter($cacheTimeout * 60);
-
-                    if ($bank === 'tcmb') {
-                        return ExChangeParser::tcmbBank();
-                    }
-
-                    return ExChangeParser::ecbBank();
-                });
-
-                // Invalidate Time
-                $this->storageInvalid[$bank] = time() + (60 * 60);
+                $this->storage[$bank] = $bank === 'tcmb' ? ExChangeParser::tcmbBank() : ExChangeParser::ecbBank();
+                $this->storageInvalid[$bank] = time() + $cacheTimeout;
             } catch (\Exception $e) {
                 $this->storage[$bank] = false;
+                $this->storageInvalid[$bank] = 0;
             }
         }
 

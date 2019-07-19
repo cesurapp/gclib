@@ -3,6 +3,7 @@
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use App\Kernel;
+use App\TimerKernel;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Http\Server as HttpServer;
@@ -43,6 +44,10 @@ class server
      */
     public function onStart(HttpServer $server): void
     {
+        // Create Timer Kernel
+        new TimerKernel($server);
+
+        // Debug Console
         echo sprintf("Swoole Worker => %s\n", $_ENV['SWOOLE_WORKER'] ?? '2');
         echo sprintf("Swoole HTTP server is started at http://%s:%s\n", $this::HOST, $_ENV['SWOOLE_PORT'] ?? $this::PORT);
     }
