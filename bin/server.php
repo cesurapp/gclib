@@ -43,10 +43,6 @@ class server
      */
     public function onStart(HttpServer $server): void
     {
-        /*$server->after(2000, function () {
-            echo "fakoff";
-        });*/
-
         echo sprintf("Swoole Worker => %s\n", $_ENV['SWOOLE_WORKER'] ?? '2');
         echo sprintf("Swoole HTTP server is started at http://%s:%s\n", $this::HOST, $_ENV['SWOOLE_PORT'] ?? $this::PORT);
     }
