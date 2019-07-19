@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  gclib:
+    build: .
+    ports:
+      - 90:9500
+    volumes:
+      - ./:/app

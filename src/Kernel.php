@@ -2,52 +2,100 @@
 
 namespace App;
 
-use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
-use Symfony\Component\Config\Loader\LoaderInterface;
-use Symfony\Component\Config\Resource\FileResource;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Kernel as BaseKernel;
-use Symfony\Component\Routing\RouteCollectionBuilder;
+use FastRoute\DataGenerator\GroupCountBased;
+use FastRoute\Dispatcher;
+use FastRoute\Dispatcher\GroupCountBased as GroupCountBasedDispatcher;
+use FastRoute\RouteCollector;
+use FastRoute\RouteParser\Std;
+use Swoole\Http\Request;
+use Swoole\Http\Response;
 
-class Kernel extends BaseKernel
+class Kernel
 {
-    use MicroKernelTrait;
+    /**
+     * @var array
+     */
+    private $container = [];
 
-    private const CONFIG_EXTS = '.{php,xml,yaml,yml}';
+    /**
+     * @var Dispatcher
+     */
+    private $router;
 
-    public function registerBundles(): iterable
+    public function __construct()
     {
-        $contents = require $this->getProjectDir().'/config/bundles.php';
-        foreach ($contents as $class => $envs) {
-            if ($envs[$this->environment] ?? $envs['all'] ?? false) {
-                yield new $class();
+        if (!$this->router) {
+            // Load Routes
+            $routes = include __DIR__ . '/Routes.php';
+
+            // Create Routes
+            $collector = new RouteCollector(new Std(), new GroupCountBased());
+            foreach ($routes as $route) {
+                $collector->addRoute($route[0], $route[1], $route[2]);
             }
+            $this->router = new GroupCountBasedDispatcher($collector->getData());
         }
     }
 
-    public function getProjectDir(): string
+    /**
+     * Boot Request
+     *
+     * @param Request $request
+     * @param Response $response
+     */
+    public function boot(Request $request, Response $response): void
     {
-        return \dirname(__DIR__);
+        // Dispatch Route
+        $route = $this->router->dispatch($request->server['request_method'], $request->server['request_uri']);
+
+        switch ($route[0]) {
+            case Dispatcher::NOT_FOUND:
+                $this->errorResponse($response);
+                break;
+            case Dispatcher::METHOD_NOT_ALLOWED:
+                $this->errorResponse($response, 'Method Not Allowed!', 405);
+                break;
+            case Dispatcher::FOUND:
+                [$class, $method] = explode('::', $route[1]);
+                $this->callController($request, $response, $class, $method, $route[2]);
+                break;
+        }
     }
 
-    protected function configureContainer(ContainerBuilder $container, LoaderInterface $loader): void
+    /**
+     * Call Controller Method
+     *
+     * @param Request $request
+     * @param Response $response
+     * @param $class
+     * @param $method
+     * @param $parameters
+     */
+    private function callController(Request $request, Response $response, $class, $method, $parameters): void
     {
-        $container->addResource(new FileResource($this->getProjectDir().'/config/bundles.php'));
-        $container->setParameter('container.dumper.inline_class_loader', true);
-        $confDir = $this->getProjectDir().'/config';
+        // Create Controller
+        if (!isset($this->container[$class])) {
+            $this->container[$class] = new $class();
+        }
 
-        $loader->load($confDir.'/{packages}/*'.self::CONFIG_EXTS, 'glob');
-        $loader->load($confDir.'/{packages}/'.$this->environment.'/**/*'.self::CONFIG_EXTS, 'glob');
-        $loader->load($confDir.'/{services}'.self::CONFIG_EXTS, 'glob');
-        $loader->load($confDir.'/{services}_'.$this->environment.self::CONFIG_EXTS, 'glob');
+        // Set Resquest|Response
+        $this->container[$class]->set($request, $response);
+
+        // Response
+        $parameters ? call_user_func_array([$this->container[$class], $method], $parameters) : $this->container[$class]->{$method}();
     }
 
-    protected function configureRoutes(RouteCollectionBuilder $routes): void
+    /**
+     * 404 Not Found Response
+     *
+     * @param Response $response
+     * @param string $message
+     * @param int $code
+     */
+    private function errorResponse(Response $response, string $message = '404 not found!', int $code = 404): void
     {
-        $confDir = $this->getProjectDir().'/config';
-
-        $routes->import($confDir.'/{routes}/'.$this->environment.'/**/*'.self::CONFIG_EXTS, '/', 'glob');
-        $routes->import($confDir.'/{routes}/*'.self::CONFIG_EXTS, '/', 'glob');
-        $routes->import($confDir.'/{routes}'.self::CONFIG_EXTS, '/', 'glob');
+        $response->header('Content-Type', 'application/json');
+        $response->status($code);
+        $response->end(json_encode(['code' => $code, 'message' => $message]));
     }
 }

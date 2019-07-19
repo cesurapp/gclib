@@ -1,9 +1,7 @@
-
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
-/public/bundles/
-/var/
+.idea
+.DS_store
 /vendor/
-###< symfony/framework-bundle ###
+var/cache/*
+!var/cache/.gitignore
+var/log/*
+!var/log/.gitignore
