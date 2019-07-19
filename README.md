@@ -32,26 +32,26 @@ services:
 
 #### Geo Location API
 Geo locate client: 
-```
+```http request
 GET http://127.0.0.1:90/geolocate
 ```
 Custom IP adress:
-```
+```http request
 GET http://127.0.0.1:90/geolocate/IP
 ```
 
 #### Exhange Rate API
 Latest exchange rates:
-```
+```http request
 GET http://127.0.0.1:90/exrate/ecb/latest #European Central Bank
 GET http://127.0.0.1:90/exrate/tcmb/latest #The Central Bank of the Republic of Turkey
 ```
 Custom exchange rate (only ecb):
-```
+```http request
 GET http://127.0.0.1:90/exrate/ecb/2019-07-18 #European Central Bank
 ```
 Custom exchange rate range (only ecb):
-```
+```http request
 GET http://127.0.0.1:90/exrate/ecb/2019-07-02/2019-07-05 #European Central Bank
 ```
 Custom Parameters:
