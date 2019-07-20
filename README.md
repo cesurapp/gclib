@@ -20,11 +20,9 @@ version: '3'
 
 services:
     gclib:
-        build: appaydin/gclib
+        image: appaydin/gclib
         ports:
             - 90:9500
-        volumes:
-            - ./:/app
         environment:
             - SWOOLE_PORT=9500
             - SWOOLE_WORKER=2

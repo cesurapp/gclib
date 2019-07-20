@@ -20,6 +20,7 @@ RUN apk del autoconf
 RUN rm -rf /var/cache/apk/*
 
 RUN mkdir -p /app
+COPY . /app
 
 WORKDIR /app
 
