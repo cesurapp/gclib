@@ -1,6 +1,22 @@
-FROM php:7.3-alpine
+#
+# Composer Depencies
+#
+FROM composer as vendor
 
-MAINTAINER Kerem APAYDIN <kerem@apaydin.me>
+COPY composer.json composer.json
+COPY composer.lock composer.lock
+
+RUN composer install \
+    --ignore-platform-reqs \
+    --no-interaction \
+    --no-plugins \
+    --no-scripts \
+    --prefer-dist
+
+#
+# PHP7
+#
+FROM php:7.3-alpine
 
 RUN apk add autoconf
 RUN apk add alpine-sdk
@@ -21,6 +37,7 @@ RUN rm -rf /var/cache/apk/*
 
 RUN mkdir -p /app
 COPY . /app
+COPY --from=vendor /app/vendor /app/vendor
 
 WORKDIR /app
 

@@ -16,7 +16,7 @@ Swool Scheduler is made with continuous update. The update is checked every 24 h
 ## Installation
 You can run the api with Docker.
 ```yaml
-version: '3'
+version: '3.4'
 
 services:
     gclib:
