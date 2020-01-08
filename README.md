@@ -26,7 +26,12 @@ services:
         environment:
             - SWOOLE_PORT=9500
             - SWOOLE_WORKER=2
+            - DBCITY=https://download.maxmind.com/...
 ```
+
+Generate DBCITY URL: https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=LICENSE_KEY&suffix=tar.gz
+
+LICENSE_KEY: You can obtain the license key from your Maxmind account.
 
 #### Geo Location API
 Geo locate client: 
